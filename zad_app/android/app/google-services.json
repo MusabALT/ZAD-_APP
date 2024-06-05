@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "80778278001",
+    "project_id": "zad-car-rental-app",
+    "storage_bucket": "zad-car-rental-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:80778278001:android:0d30c30f54656372fe17d0",
+        "android_client_info": {
+          "package_name": "com.example.zad_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBp11NN-siDC0bVFk99HwCGieJBODUnZAY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
