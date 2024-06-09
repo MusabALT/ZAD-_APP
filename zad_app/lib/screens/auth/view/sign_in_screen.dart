@@ -108,7 +108,7 @@ class _LoginViewState extends State<LoginView> {
                           }
                           try {
                             User? user =
-                                await _authController.login(email, password);
+                                (await _authController.login(email, password)) as User?;
                             if (user != null) {
                               if (user.role == 'admin') {
                                 Navigator.pushReplacementNamed(

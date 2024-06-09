@@ -218,8 +218,8 @@ class _RegisterViewState extends State<RegisterView> {
                               return;
                             }
                             try {
-                              User? newUser = await _authController.register(
-                                  email, password, name);
+                              User? newUser = (await _authController.register(
+                                  email, password, name)) as User?;
                               if (newUser != null) {
                                 Navigator.pushReplacementNamed(
                                     context, '/customer_home');

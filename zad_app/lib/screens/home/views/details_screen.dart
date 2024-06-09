@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:zad_app/models/car_model.dart';
 import 'package:zad_app/screens/home/views/BookingScreen.dart';
+import '../../../models/car_model.dart';
 
 class DetailsScreen extends StatelessWidget {
   final Car car;
