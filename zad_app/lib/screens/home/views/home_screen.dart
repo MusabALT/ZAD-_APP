@@ -6,6 +6,7 @@ import 'package:zad_app/screens/home/views/membership_screen.dart';
 
 import '../../../Controller/auth_controller.dart';
 import 'car_location.dart';
+import 'customer_feedback.dart';
 import 'veiw_rental_information.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -24,7 +25,8 @@ class _HomeScreenState extends State<HomeScreen> {
     const SearchScreen(), // First screen
     const MembershipScreen(),
     const UserRentalDetailsScreen(),
-    const CarLocationScreen(),
+    // const CarLocationScreen(),
+    const CustomerFeedbackScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -103,10 +105,15 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.car_crash),
             label: 'View Rental Details',
           ),
-          BottomNavigationBarItem(
+          /*BottomNavigationBarItem(
             backgroundColor: Color.fromARGB(255, 66, 12, 190),
             icon: Icon(Icons.location_pin),
             label: 'Location Tracker',
+          ),*/
+          BottomNavigationBarItem(
+            backgroundColor: Color.fromARGB(255, 66, 12, 190),
+            icon: Icon(Icons.rate_review_rounded),
+            label: 'Customer Feedback ',
           ),
         ],
         currentIndex: _selectedIndex,
