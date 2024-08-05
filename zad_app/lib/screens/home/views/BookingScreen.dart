@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_ml_vision/google_ml_vision.dart';
@@ -7,6 +6,7 @@ import 'package:camera/camera.dart';
 import '../../../models/car_model.dart';
 import 'payment_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class BookingScreen extends StatefulWidget {
   final double carPricePerDay;
@@ -20,8 +20,6 @@ class BookingScreen extends StatefulWidget {
 }
 
 class _BookingScreenState extends State<BookingScreen> {
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
   final TextEditingController _daysController = TextEditingController();
   XFile? _licenseImage;
   XFile? _userImage;
@@ -50,8 +48,17 @@ class _BookingScreenState extends State<BookingScreen> {
 
   Future<void> _initializeCamera() async {
     final cameras = await availableCameras();
-    _cameraController = CameraController(cameras[0], ResolutionPreset.high);
-    await _cameraController!.initialize();
+    final frontCamera = cameras.firstWhere(
+        (camera) => camera.lensDirection == CameraLensDirection.front);
+
+    _cameraController = CameraController(frontCamera, ResolutionPreset.high);
+    try {
+      await _cameraController!.initialize();
+      setState(() {}); // To refresh the UI after camera initialization
+    } catch (e) {
+      // Handle errors during camera initialization
+      print('Error initializing camera: $e');
+    }
   }
 
   void _calculateTotalPrice() {
@@ -94,37 +101,107 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Future<void> _takePicture() async {
-    if (_cameraController == null) {
-      final cameras = await availableCameras();
-      _cameraController = CameraController(cameras[0], ResolutionPreset.high);
-      await _cameraController!.initialize();
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
+      // Handle uninitialized camera controller
+      return;
     }
 
-    final XFile image = await _cameraController!.takePicture();
-    final FaceDetector faceDetector = GoogleVision.instance.faceDetector();
-    final List<Face> faces = await faceDetector
-        .processImage(GoogleVisionImage.fromFile(File(image.path)));
+    try {
+      final XFile image = await _cameraController!.takePicture();
+      final FaceDetector faceDetector = GoogleVision.instance.faceDetector();
+      final GoogleVisionImage userVisionImage =
+          GoogleVisionImage.fromFile(File(image.path));
+      final List<Face> userFaces =
+          await faceDetector.processImage(userVisionImage);
 
-    bool facesMatch = _compareFaces(faces);
+      if (_licenseImage == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Please upload your license image first.',
+                style: const TextStyle(color: Colors.white)),
+          ),
+        );
+        return;
+      }
 
-    setState(() {
-      _userImage = image;
-      _isFaceDetectedInUser = faces.isNotEmpty;
-      _facesMismatch = !facesMatch;
-    });
+      final GoogleVisionImage licenseVisionImage =
+          GoogleVisionImage.fromFile(File(_licenseImage!.path));
+      final List<Face> licenseFaces =
+          await faceDetector.processImage(licenseVisionImage);
+
+      bool facesMatch = _compareFaces(userFaces, licenseFaces);
+
+      setState(() {
+        _userImage = image;
+        _isFaceDetectedInUser = userFaces.isNotEmpty;
+        _facesMismatch = !facesMatch;
+      });
+
+      if (facesMatch) {
+        showSuccessAlert(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Faces do not match. Please try again.',
+                style: const TextStyle(color: Colors.white)),
+          ),
+        );
+      }
+    } catch (e) {
+      // Handle errors during taking picture
+      print('Error taking picture: $e');
+    }
   }
 
-  bool _compareFaces(List<Face> faces) {
-    return true;
+  void showSuccessAlert(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.green,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Icon(
+                Icons.check_circle,
+                color: Colors.white,
+                size: 50,
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Faces matched successfully!',
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  bool _compareFaces(List<Face> userFaces, List<Face> licenseFaces) {
+    if (userFaces.isEmpty || licenseFaces.isEmpty) {
+      return false;
+    }
+    // Simple comparison based on the number of faces detected
+    return userFaces.length == licenseFaces.length;
   }
 
   Future<void> _bookCar() async {
     try {
-      // Update the car document in Firestore to set `is_booked` to true
+      // Update the car document in Firestore to set `is_booked` to true and `availability` to "Out of Stock"
       await FirebaseFirestore.instance
           .collection('cars')
           .doc(widget.carId)
-          .update({'is_booked': true});
+          .update({
+        'is_booked': true,
+        'availability': 'Out of Stock',
+      });
 
       // Navigate to the payment screen
       Navigator.push(
@@ -133,7 +210,8 @@ class _BookingScreenState extends State<BookingScreen> {
           builder: (context) => PaymentScreen(
             totalPrice: _totalPrice,
             carName: _car!.name,
-            rentalDays: int.tryParse(_daysController.text) ?? 0, uid: '',
+            rentalDays: int.tryParse(_daysController.text) ?? 0,
+            uid: '', // Pass the appropriate uid
           ),
         ),
       );
@@ -157,9 +235,13 @@ class _BookingScreenState extends State<BookingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 66, 12, 190),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('Booking Information',
             style: TextStyle(color: Colors.white)),
         backgroundColor: const Color.fromARGB(255, 66, 12, 190),
@@ -167,7 +249,7 @@ class _BookingScreenState extends State<BookingScreen> {
       body: _car == null
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(screenWidth * 0.04),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -178,14 +260,15 @@ class _BookingScreenState extends State<BookingScreen> {
                         fontWeight: FontWeight.bold,
                         color: Colors.white),
                   ),
-                  const SizedBox(height: 8.0),
+                  SizedBox(height: screenHeight * 0.02),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       GestureDetector(
                         onTap: _selectLicenseImage,
                         child: Container(
-                          width: 150,
-                          height: 150,
+                          width: screenWidth * 0.4,
+                          height: screenHeight * 0.2,
                           decoration: BoxDecoration(
                             border: Border.all(color: Colors.grey),
                           ),
@@ -197,6 +280,8 @@ class _BookingScreenState extends State<BookingScreen> {
                                     Image.file(
                                       File(_licenseImage!.path),
                                       fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
                                     ),
                                     if (!_isFaceDetectedInLicense)
                                       const Center(
@@ -212,12 +297,11 @@ class _BookingScreenState extends State<BookingScreen> {
                                 ),
                         ),
                       ),
-                      const SizedBox(width: 16.0),
                       GestureDetector(
                         onTap: _takePicture,
                         child: Container(
-                          width: 150,
-                          height: 150,
+                          width: screenWidth * 0.4,
+                          height: screenHeight * 0.2,
                           decoration: BoxDecoration(
                             border: Border.all(color: Colors.grey),
                           ),
@@ -229,6 +313,8 @@ class _BookingScreenState extends State<BookingScreen> {
                                     Image.file(
                                       File(_userImage!.path),
                                       fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
                                     ),
                                     if (!_isFaceDetectedInUser)
                                       const Center(
@@ -256,40 +342,7 @@ class _BookingScreenState extends State<BookingScreen> {
                             fontSize: 18.0),
                       ),
                     ),
-                  const SizedBox(height: 16.0),
-                  TextField(
-                    controller: _phoneController,
-                    decoration: const InputDecoration(
-                      labelText: 'Phone Number',
-                      labelStyle: TextStyle(color: Colors.white),
-                      enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                      ),
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                      ),
-                    ),
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  const SizedBox(height: 16.0),
-                  TextField(
-                    controller: _addressController,
-                    decoration: const InputDecoration(
-                      labelText: 'Address',
-                      hintText:
-                          'Enter your address as on license for verification',
-                      labelStyle: TextStyle(color: Colors.white),
-                      hintStyle: TextStyle(color: Colors.white),
-                      enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                      ),
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                      ),
-                    ),
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  const SizedBox(height: 16.0),
+                  SizedBox(height: screenHeight * 0.02),
                   TextField(
                     controller: _daysController,
                     keyboardType: TextInputType.number,
@@ -307,7 +360,7 @@ class _BookingScreenState extends State<BookingScreen> {
                     ),
                     style: const TextStyle(color: Colors.white),
                   ),
-                  const SizedBox(height: 16.0),
+                  SizedBox(height: screenHeight * 0.02),
                   Text(
                     'Total Price: \$$_totalPrice',
                     style: const TextStyle(
@@ -315,7 +368,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         fontWeight: FontWeight.bold,
                         color: Colors.white),
                   ),
-                  const SizedBox(height: 16.0),
+                  SizedBox(height: screenHeight * 0.02),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(

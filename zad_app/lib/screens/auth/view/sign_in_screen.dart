@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:zad_app/models/user_model.dart';
-
 import '../../../Controller/auth_controller.dart';
 import 'sign_up_screen.dart';
 
@@ -108,7 +107,7 @@ class _LoginViewState extends State<LoginView> {
                           }
                           try {
                             User? user =
-                                (await _authController.login(email, password)) as User?;
+                                (await _authController.login(email, password));
                             if (user != null) {
                               if (user.role == 'admin') {
                                 Navigator.pushReplacementNamed(

@@ -79,9 +79,9 @@ class _AddCarScreenState extends State<AddCarScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 15, 40, 231),
+      backgroundColor: const Color.fromARGB(255, 66, 12, 190),
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 15, 40, 231),
+        backgroundColor: const Color.fromARGB(255, 66, 12, 190),
         title: const Text(
           'Add Car',
           style: TextStyle(color: Colors.white),

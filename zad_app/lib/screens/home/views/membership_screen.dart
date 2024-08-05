@@ -307,9 +307,9 @@ class PointsScreen extends StatelessWidget {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              content: Column(
+              content: const Column(
                 mainAxisSize: MainAxisSize.min,
-                children: const <Widget>[
+                children: <Widget>[
                   Icon(
                     Icons.check_circle,
                     color: Colors.green,
@@ -338,9 +338,9 @@ class PointsScreen extends StatelessWidget {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              content: Column(
+              content: const Column(
                 mainAxisSize: MainAxisSize.min,
-                children: const <Widget>[
+                children: <Widget>[
                   Icon(
                     Icons.error,
                     color: Colors.red,

@@ -14,7 +14,8 @@ class PaymentScreen extends StatefulWidget {
     super.key,
     required this.totalPrice,
     required this.carName,
-    required this.rentalDays, required String uid,
+    required this.rentalDays,
+    required String uid,
   });
 
   @override
@@ -26,7 +27,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
   final TextEditingController _cardNumberController = TextEditingController();
   final TextEditingController _cardExpiryController = TextEditingController();
   final TextEditingController _cardCVVController = TextEditingController();
-  final TextEditingController _cardHolderNameController = TextEditingController();
+  final TextEditingController _cardHolderNameController =
+      TextEditingController();
   bool _usePoints = false; // Whether the user wants to use points
   String? _uid;
   String? _name;
@@ -51,7 +53,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
       });
 
       // Fetch the user's name from Firestore
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(_uid).get();
+      DocumentSnapshot userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(_uid).get();
       if (userDoc.exists) {
         setState(() {
           _name = userDoc['name'];
@@ -63,7 +66,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Future<void> _fetchUserPointsAndDiscount() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('memberships').doc(user.uid).get();
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('memberships')
+          .doc(user.uid)
+          .get();
       if (userDoc.exists) {
         setState(() {
           _userPoints = userDoc['points'];
@@ -89,7 +95,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
       setState(() {
         _usePoints = value;
         if (_usePoints && _userPoints != null && _userPoints! >= 200) {
-          _totalPrice = widget.totalPrice - (widget.totalPrice / widget.rentalDays); // Subtract the cost of one day
+          _totalPrice = widget.totalPrice -
+              (widget.totalPrice /
+                  widget.rentalDays); // Subtract the cost of one day
         } else {
           _totalPrice = widget.totalPrice;
         }
@@ -112,16 +120,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
     if (_usePoints && _userPoints != null && _userPoints! >= 200) {
       // Deduct points from user's account
       int updatedPoints = _userPoints! - 200;
-      await FirebaseFirestore.instance.collection('memberships').doc(_uid).update({'points': updatedPoints});
+      await FirebaseFirestore.instance
+          .collection('memberships')
+          .doc(_uid)
+          .update({'points': updatedPoints});
 
       // Show alert for free day
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            content: Column(
+            content: const Column(
               mainAxisSize: MainAxisSize.min,
-              children: const <Widget>[
+              children: <Widget>[
                 Icon(
                   Icons.check_circle,
                   color: Colors.green,
@@ -155,9 +166,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            content: Column(
+            content: const Column(
               mainAxisSize: MainAxisSize.min,
-              children: const <Widget>[
+              children: <Widget>[
                 Icon(
                   Icons.check_circle,
                   color: Colors.green,
@@ -191,17 +202,27 @@ class _PaymentScreenState extends State<PaymentScreen> {
       'totalPrice': _totalPrice,
       'rentalDays': widget.rentalDays,
       'paymentMethod': _selectedPaymentMethod,
-      'cardNumber': _selectedPaymentMethod == 'Card' ? _cardNumberController.text : null,
-      'cardExpiry': _selectedPaymentMethod == 'Card' ? _cardExpiryController.text : null,
-      'cardCVV': _selectedPaymentMethod == 'Card' ? _cardCVVController.text : null,
-      'cardHolderName': _selectedPaymentMethod == 'Card' ? _cardHolderNameController.text : null,
-      'location': _selectedLocation != null ? GeoPoint(_selectedLocation!.latitude, _selectedLocation!.longitude) : null, // Save selected location
+      'cardNumber':
+          _selectedPaymentMethod == 'Card' ? _cardNumberController.text : null,
+      'cardExpiry':
+          _selectedPaymentMethod == 'Card' ? _cardExpiryController.text : null,
+      'cardCVV':
+          _selectedPaymentMethod == 'Card' ? _cardCVVController.text : null,
+      'cardHolderName': _selectedPaymentMethod == 'Card'
+          ? _cardHolderNameController.text
+          : null,
+      'location': _selectedLocation != null
+          ? GeoPoint(_selectedLocation!.latitude, _selectedLocation!.longitude)
+          : null, // Save selected location
     });
 
     // Add 200 points to the user's account
     if (_userPoints != null) {
       int updatedPoints = _userPoints! + 200;
-      await FirebaseFirestore.instance.collection('memberships').doc(_uid).update({'points': updatedPoints});
+      await FirebaseFirestore.instance
+          .collection('memberships')
+          .doc(_uid)
+          .update({'points': updatedPoints});
       pointsAdded = true;
     }
 
@@ -216,7 +237,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
           totalPrice: _totalPrice,
           rentalDays: widget.rentalDays,
           paymentMethod: _selectedPaymentMethod,
-          cardNumber: _selectedPaymentMethod == 'Card' ? _cardNumberController.text : null,
+          cardNumber: _selectedPaymentMethod == 'Card'
+              ? _cardNumberController.text
+              : null,
           discountApplied: discountApplied,
           pointsAdded: pointsAdded,
         ),
@@ -228,7 +251,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Future<void> _selectLocation() async {
     LatLng? selectedLocation = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => SelectLocationScreen()),
+      MaterialPageRoute(builder: (context) => const SelectLocationScreen()),
     );
     if (selectedLocation != null) {
       setState(() {
@@ -242,6 +265,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 66, 12, 190),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: const Color.fromARGB(255, 66, 12, 190),
         title: const Text('Payment', style: TextStyle(color: Colors.white)),
       ),
@@ -371,7 +395,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromARGB(255, 15, 40, 231),
               ),
-              child: const Text('Select Location', style: TextStyle(color: Colors.white)),
+              child: const Text('Select Location',
+                  style: TextStyle(color: Colors.white)),
             ),
             const SizedBox(height: 16.0),
             ElevatedButton(
@@ -379,7 +404,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromARGB(255, 15, 40, 231),
               ),
-              child: const Text('Submit Payment', style: TextStyle(color: Colors.white)),
+              child: const Text('Submit Payment',
+                  style: TextStyle(color: Colors.white)),
             ),
           ],
         ),

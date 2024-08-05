@@ -3,12 +3,14 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 
 class SelectLocationScreen extends StatefulWidget {
+  const SelectLocationScreen({super.key});
+
   @override
   _SelectLocationScreenState createState() => _SelectLocationScreenState();
 }
 
 class _SelectLocationScreenState extends State<SelectLocationScreen> {
-  LatLng _selectedLocation = LatLng(37.7749, -122.4194); // Default location
+  LatLng _selectedLocation = const LatLng(37.7749, -122.4194); // Default location
   GoogleMapController? _mapController;
 
   @override
@@ -75,10 +77,10 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Select Location'),
+        title: const Text('Select Location'),
         actions: [
           IconButton(
-            icon: Icon(Icons.check),
+            icon: const Icon(Icons.check),
             onPressed: _onConfirm,
           ),
         ],
@@ -92,7 +94,7 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
         onTap: _onTap,
         markers: {
           Marker(
-            markerId: MarkerId('selectedLocation'),
+            markerId: const MarkerId('selectedLocation'),
             position: _selectedLocation,
           ),
         },

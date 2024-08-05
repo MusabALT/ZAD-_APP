@@ -6,8 +6,8 @@ class AuthController {
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<local_model.User?> register(
-      String email, String password, String name) async {
+  Future<local_model.User?> register(String email, String password, String name,
+      String phoneNumber, String address) async {
     local_model.User? user;
     try {
       final firebase_auth.UserCredential userCredential = await _auth
@@ -19,6 +19,8 @@ class AuthController {
           email: email,
           name: name,
           role: 'customer',
+          phoneNumber: phoneNumber,
+          address: address,
         );
         await _firestore.collection('users').doc(user.uid).set(user.toMap());
         print('User registered: ${user.toMap()}');

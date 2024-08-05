@@ -6,7 +6,8 @@ import 'package:zad_app/screens/home/views/membership_screen.dart';
 
 import '../../../Controller/auth_controller.dart';
 import 'car_location.dart';
-import 'customer_feedback.dart';
+import 'feedback_submission_screen.dart';
+import 'profile.dart';
 import 'veiw_rental_information.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,22 +17,49 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   int _selectedIndex = 0; // Keeps track of the selected index
   final AuthController _authController =
       AuthController(); // Instantiate the AuthController
+
+  late AnimationController _animationController;
+  late Animation<double> _animation;
 
   static final List<Widget> _widgetOptions = <Widget>[
     const SearchScreen(), // First screen
     const MembershipScreen(),
     const UserRentalDetailsScreen(),
-    // const CarLocationScreen(),
-    const CustomerFeedbackScreen(),
+    const CarLocationScreen(),
+    const FeedbackSubmissionScreen(),
+    const Profile(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _animation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+      _animationController.reset();
+      _animationController.forward();
     });
   }
 
@@ -58,10 +86,13 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/6.png',
-              scale: 2,
-              color: Colors.white,
+            Hero(
+              tag: 'logo',
+              child: Image.asset(
+                'assets/6.png',
+                scale: 2,
+                color: Colors.white,
+              ),
             ),
             const SizedBox(width: 8),
             const Text(
@@ -83,12 +114,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
+      body: FadeTransition(
+        opacity: _animation,
+        child: Center(
+          child: _widgetOptions.elementAt(_selectedIndex),
+        ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: const Color.fromARGB(
-            255, 66, 12, 190), // Set background color to green
+        backgroundColor: const Color.fromARGB(255, 66, 12, 190),
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             backgroundColor: Color.fromARGB(255, 66, 12, 190),
@@ -105,15 +138,20 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.car_crash),
             label: 'View Rental Details',
           ),
-          /*BottomNavigationBarItem(
+          BottomNavigationBarItem(
             backgroundColor: Color.fromARGB(255, 66, 12, 190),
             icon: Icon(Icons.location_pin),
             label: 'Location Tracker',
-          ),*/
+          ),
           BottomNavigationBarItem(
             backgroundColor: Color.fromARGB(255, 66, 12, 190),
             icon: Icon(Icons.rate_review_rounded),
-            label: 'Customer Feedback ',
+            label: 'Feedback',
+          ),
+          BottomNavigationBarItem(
+            backgroundColor: Color.fromARGB(255, 66, 12, 190),
+            icon: Icon(Icons.person),
+            label: 'Profile',
           ),
         ],
         currentIndex: _selectedIndex,

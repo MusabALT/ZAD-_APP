@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:zad_app/models/user_model.dart';
-
+import 'package:zad_app/models/user_model.dart'
+    as local_model; // Renamed to avoid conflict
 import '../../../Controller/auth_controller.dart';
 
 class RegisterView extends StatefulWidget {
@@ -12,7 +12,7 @@ class RegisterView extends StatefulWidget {
 
 class _RegisterViewState extends State<RegisterView> {
   final AuthController _authController = AuthController();
-  late String email, password, name;
+  late String email, password, name, phoneNumber, address;
   final _formKey = GlobalKey<FormState>();
   bool _passwordValid = false;
   String _passwordErrorMessage = '';
@@ -132,8 +132,7 @@ class _RegisterViewState extends State<RegisterView> {
                             prefixIcon: Icon(Icons.email),
                             prefixIconColor: Colors.white,
                           ),
-                          style:
-                              const TextStyle(color: Colors.white), // Add this line
+                          style: const TextStyle(color: Colors.white),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter your email';
@@ -154,11 +153,52 @@ class _RegisterViewState extends State<RegisterView> {
                             prefixIcon: Icon(Icons.person),
                             prefixIconColor: Colors.white,
                           ),
-                          style:
-                              const TextStyle(color: Colors.white), // Add this line
+                          style: const TextStyle(color: Colors.white),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter your name';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          onChanged: (value) {
+                            phoneNumber = value;
+                          },
+                          decoration: const InputDecoration(
+                            hintText: 'Enter Phone Number',
+                            hintStyle: TextStyle(
+                                color: Color.fromARGB(175, 255, 255, 255)),
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.phone),
+                            prefixIconColor: Colors.white,
+                          ),
+                          style: const TextStyle(color: Colors.white),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your phone number';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          onChanged: (value) {
+                            address = value;
+                          },
+                          decoration: const InputDecoration(
+                            hintText: 'Enter Address',
+                            hintStyle: TextStyle(
+                                color: Color.fromARGB(175, 255, 255, 255)),
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.home),
+                            prefixIconColor: Colors.white,
+                          ),
+                          style: const TextStyle(color: Colors.white),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your address';
                             }
                             return null;
                           },
@@ -178,8 +218,7 @@ class _RegisterViewState extends State<RegisterView> {
                             prefixIcon: Icon(Icons.lock),
                             prefixIconColor: Colors.white,
                           ),
-                          style:
-                              const TextStyle(color: Colors.white), 
+                          style: const TextStyle(color: Colors.white),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter a password';
@@ -218,8 +257,9 @@ class _RegisterViewState extends State<RegisterView> {
                               return;
                             }
                             try {
-                              User? newUser = (await _authController.register(
-                                  email, password, name)) as User?;
+                              local_model.User? newUser =
+                                  (await _authController.register(email,
+                                      password, name, phoneNumber, address));
                               if (newUser != null) {
                                 Navigator.pushReplacementNamed(
                                     context, '/customer_home');
@@ -233,8 +273,8 @@ class _RegisterViewState extends State<RegisterView> {
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(
-                                255, 14, 24, 111), // Light green color
+                            backgroundColor:
+                                const Color.fromARGB(255, 14, 24, 111),
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 40, vertical: 10),
                             textStyle: const TextStyle(fontSize: 18),

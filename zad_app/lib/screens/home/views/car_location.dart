@@ -32,15 +32,15 @@ class _CarLocationScreenState extends State<CarLocationScreen> {
   }
 
   Future<void> _createCarIcon() async {
-    _carIcon =
-        await _bitmapDescriptorFromIcon(Icons.directions_car, Color.fromARGB(255, 45, 3, 101));
+    _carIcon = await _bitmapDescriptorFromIcon(
+        Icons.directions_car, const Color.fromARGB(255, 45, 3, 101));
   }
 
   Future<BitmapDescriptor> _bitmapDescriptorFromIcon(
       IconData iconData, Color color) async {
     final PictureRecorder pictureRecorder = ui.PictureRecorder();
     final Canvas canvas = Canvas(pictureRecorder);
-    final double size = 48.0;
+    const double size = 48.0;
     final TextPainter textPainter =
         TextPainter(textDirection: TextDirection.ltr);
     final textSpan = TextSpan(
@@ -174,6 +174,7 @@ class _CarLocationScreenState extends State<CarLocationScreen> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 66, 12, 190),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: const Color.fromARGB(255, 66, 12, 190),
         title: const Text(
           'Car Location',
@@ -181,7 +182,7 @@ class _CarLocationScreenState extends State<CarLocationScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.edit_location),
+            icon: const Icon(Icons.edit_location),
             onPressed: () async {
               Position position = await _determinePosition();
               setState(() {

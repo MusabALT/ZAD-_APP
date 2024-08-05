@@ -9,10 +9,6 @@ class CarListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 66, 12, 190),
-      appBar: AppBar(
-        title: const Text('Car List', style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color.fromARGB(255, 66, 12, 190),
-      ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('cars').snapshots(),
         builder: (context, snapshot) {

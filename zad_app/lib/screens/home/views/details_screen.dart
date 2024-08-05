@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:zad_app/screens/home/views/BookingScreen.dart';
 import '../../../models/car_model.dart';
@@ -12,21 +13,35 @@ class DetailsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 66, 12, 190),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: const Color.fromARGB(255, 66, 12, 190),
         title: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Image.asset('assets/6.png', scale: 2),
+            Image.asset(
+              'assets/6.png',
+              scale: 2,
+              color: Colors.white,
+            ),
             const SizedBox(width: 8),
             const Text(
-              '       ZAD',
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 30),
+              '          ZAD',
+              style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 30,
+                  color: Colors.white),
             ),
           ],
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.exit_to_app,
+              color: Colors.white,
+            ),
+            onPressed: () => _signOut(context), // Pass the context to _signOut
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -153,5 +168,14 @@ class DetailsScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _signOut(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushNamed(context, "/login");
+    } catch (e) {
+      print("Error signing out: $e");
+    }
   }
 }

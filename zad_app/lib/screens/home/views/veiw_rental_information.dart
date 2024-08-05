@@ -60,7 +60,7 @@ class _UserRentalDetailsScreenState extends State<UserRentalDetailsScreen> {
                               Text('Card Number: ${rentalData['cardNumber']}'),
                           ],
                         ),
-                        trailing: IconButton(
+                        /* trailing: IconButton(
                           icon: const Icon(Icons.info),
                           onPressed: () {
                             Navigator.push(
@@ -78,7 +78,7 @@ class _UserRentalDetailsScreenState extends State<UserRentalDetailsScreen> {
                               ),
                             );
                           },
-                        ),
+                        ),*/
                       ),
                     );
                   },

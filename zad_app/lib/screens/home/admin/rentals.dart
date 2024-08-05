@@ -14,8 +14,14 @@ class _AdminRentalManagementScreenState
     extends State<AdminRentalManagementScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<void> _deleteRental(String rentalId) async {
+  Future<void> _deleteRental(String rentalId, String? carId) async {
     await _firestore.collection('rentals').doc(rentalId).delete();
+    if (carId != null) {
+      await _firestore.collection('cars').doc(carId).update({
+        'is_booked': false,
+        'availability': 'In Stock',
+      });
+    }
   }
 
   Future<void> _updateRental(
@@ -23,10 +29,22 @@ class _AdminRentalManagementScreenState
     await _firestore.collection('rentals').doc(rentalId).update(updatedData);
   }
 
+  Future<void> _returnCar(String rentalId, String carId) async {
+    await _firestore.collection('rentals').doc(rentalId).update({
+      'returned': true,
+    });
+    await _firestore.collection('cars').doc(carId).update({
+      'is_booked': false,
+      'availability': 'In Stock',
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 66, 12, 190),
       appBar: AppBar(
+        backgroundColor: const Color.fromARGB(255, 66, 12, 190),
         title: const Text('Admin Rental Management'),
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -44,23 +62,36 @@ class _AdminRentalManagementScreenState
               var rental = rentals[index];
               var rentalData = rental.data() as Map<String, dynamic>;
 
-              // Add debugging prints
-              print('Rental Data: $rentalData');
+              String imagePath = rentalData['carImage'] ?? '';
 
               return Card(
                 margin: const EdgeInsets.all(10),
                 child: ListTile(
+                  leading: imagePath.isNotEmpty
+                      ? Image.network(
+                          imagePath,
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(Icons.error);
+                          },
+                        )
+                      : const Icon(Icons.car_rental),
                   title: Text('Car: ${rentalData['carName'] ?? 'N/A'}'),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('User: ${rentalData['name'] ?? 'N/A'}'),
-                      Text('Total Price: \$${rentalData['totalPrice'] ?? 'N/A'}'),
+                      Text(
+                          'Total Price: \$${rentalData['totalPrice'] ?? 'N/A'}'),
                       Text('Rental Days: ${rentalData['rentalDays'] ?? 'N/A'}'),
-                      Text('Payment Method: ${rentalData['paymentMethod'] ?? 'N/A'}'),
+                      Text(
+                          'Payment Method: ${rentalData['paymentMethod'] ?? 'N/A'}'),
                       if (rentalData['paymentMethod'] == 'Card' &&
                           rentalData['cardNumber'] != null)
-                        Text('Card Number: ${rentalData['cardNumber'] ?? 'N/A'}'),
+                        Text(
+                            'Card Number: ${rentalData['cardNumber'] ?? 'N/A'}'),
                       if (rentalData['location'] != null)
                         Text(
                             'Location: (${rentalData['location'].latitude}, ${rentalData['location'].longitude})'),
@@ -80,7 +111,7 @@ class _AdminRentalManagementScreenState
                         icon: const Icon(Icons.delete),
                         onPressed: () {
                           // Handle rental deletion
-                          _deleteRental(rental.id);
+                          _deleteRental(rental.id, rentalData['carId']);
                         },
                       ),
                       if (rentalData['location'] != null)
@@ -90,6 +121,16 @@ class _AdminRentalManagementScreenState
                             // Show the car location on a map
                             _showMapDialog(rentalData['location'].latitude,
                                 rentalData['location'].longitude);
+                          },
+                        ),
+                      if (rentalData['carId'] != null &&
+                          (rentalData['returned'] == null ||
+                              rentalData['returned'] == false))
+                        IconButton(
+                          icon: const Icon(Icons.undo),
+                          onPressed: () {
+                            // Handle returning the car
+                            _returnCar(rental.id, rentalData['carId']);
                           },
                         ),
                     ],
@@ -147,7 +188,8 @@ class _AdminRentalManagementScreenState
                 ),
                 TextField(
                   controller: paymentMethodController,
-                  decoration: const InputDecoration(labelText: 'Payment Method'),
+                  decoration:
+                      const InputDecoration(labelText: 'Payment Method'),
                 ),
                 if (paymentMethodController.text == 'Card')
                   TextField(
@@ -206,7 +248,7 @@ class _AdminRentalManagementScreenState
       builder: (context) {
         return AlertDialog(
           title: const Text('Car Location'),
-          content: Container(
+          content: SizedBox(
             height: 300,
             width: 300,
             child: GoogleMap(

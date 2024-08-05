@@ -50,9 +50,9 @@ class RentalDetailsScreen extends StatelessWidget {
                 style: const TextStyle(fontSize: 20.0, color: Colors.white),
               ),
               if (discountApplied) // Check if discount was applied
-                Text(
+                const Text(
                   'You received a 30% discount!',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20.0,
                     fontWeight: FontWeight.bold,
                     color: Colors.green,
@@ -60,9 +60,9 @@ class RentalDetailsScreen extends StatelessWidget {
                 ),
               const SizedBox(height: 16.0),
               if (pointsAdded) // Check if points were added
-                Text(
+                const Text(
                   'You have been given 200 points!',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20.0,
                     fontWeight: FontWeight.bold,
                     color: Colors.green,
